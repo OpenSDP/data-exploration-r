@@ -1,0 +1,1236 @@
+---
+title: "Data Exploration in R"
+author: "OpenSDP"
+date: "August 15, 2017"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+editor_options:
+  chunk_output_type: inline
+---
+
+
+```{r setup, echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, comment=NA}
+# Set options for R code output
+library(knitr)
+knitr::opts_chunk$set(comment=NA, message=FALSE, echo=TRUE, warning=FALSE, 
+                      error=FALSE,
+                      fig.align='center')
+# Set R output width to render nicely
+options(width=80)
+```
+
+
+<div class="navbar navbar-default navbar-fixed-top" id="logo">
+<div class="container">
+<img src="img\open_sdp_logo_red.png" style="display: block; margin: 0 auto; height: 115px;">
+</div>
+</div>
+
+# Data Exploration in R
+
+The purpose of this tutorial is to 1) provide a R refresher for education data 
+analysts who are not yet comfortable using R, and 2) demonstrate some useful 
+data exploration commands. You don't need to know any R to do this tutorial.
+
+This tutorial is fairly basic, so to put the material into the context of your
+own work, here is some advice about what it takes to become proficient in R,
+the typical steps involved in using R for an analysis project, and staying
+organized. Learning R is hard work, but it can be very rewarding!
+As you learn R, you'll build your skills and understanding in a number of
+ways. If you don't have programming experience, you'll be getting used to
+writing programs to tell R what to do with your data. You'll learn the
+syntax and options for various commands, and memorize the most important ones.
+Since you'll be summarizing and manipulating very large datasets with hundreds
+of thousands or millions of lines, you'll get used to keeping a picture of the
+data and its structure in your head as you work, figuring out how different
+commands will affect the data, and checking whether what you think you did to
+the data is what actually happened.
+
+Getting first comfortable and then expert in R will take time. You can learn
+some basic commands very quickly, but to learn how to unleash the full power of
+R can take three to six months of steady effort. This means that to get
+enough practice to become proficient you will probably need to use R in your
+daily work, and most of your learning will happen on your own. As you grow your
+R skills, you should seek out a variety of resources to help you figure out
+how to tackle different problems: the excellent R help system, 
+colleagues and fellow R programmers, the SDP R Slack channel, and online websites 
+and training resources.
+
+For a typical analysis cycle, you will acquire data, load it into R, and
+spend some time exploring it to get to know the data, assessing the data quality
+and uncovering problems with the data. Then, you'll use data manipulation
+commands to "clean" and prepare the data. You'll apply decision rules to make it
+internally consistent, label and reformat the variables, combine and reshape
+data from different sources, and define the new variables you need. This data
+wrangling phase typically takes most of the time and effort in a statistical
+programming project.
+
+Once the data is prepared, you can use data exploration commands again to do
+descriptive analysis. Depending on your comfort level with statistics and
+econometrics, you can call on R's extensive modeling tools to dig deeper into 
+statistical analysis and forecasting. Finally, you
+will probably spend significant time preparing and polishing charts to use in
+sharing the results of your analysis. You can use R's extensive library of
+data visualization commands to prepare charts, or copy analysis results from
+R and make the charts in a different program you are already familiar with
+such as Excel.
+
+When you start an analysis project, you should spend some time thinking about
+how you will organize your work. For training purposes, you can put programs and
+data files in a single folder on your computer desktop, but eventually you will
+need to separate your files. One suggestion is to use one folder per project,
+with separate subfolders for R programs, data, and output such as tables and
+charts.
+
+You should never save over your original, or "raw" data. Instead, you
+can write commands in an "R script" (an R program) to clean your data, define
+new variables, save the updated dataset to a new file, and then run analyses. If
+you need to update the data later or make other changes you can edit the do
+file, re-run it, re-save the cleaned dataset, and regenerate the analyses. In
+this way your work will be reproducible for someone else, including you in the
+future, can review your do file and data to recreate how an analysis was done.
+Now, on to the tutorial! It has two parts. In Part 1, you will see how to use
+data exploration commands to inspect a student-level dataset. In Part 2, you'll
+get practice using data exploration commands to answer simple research
+questions.
+
+# Pre-Flight
+
+Before beginning this tutorial, make sure you have RStudio installed on your 
+computer. RStudio is the absolute best way for beginners and seasoned R veterans 
+alike to interface with R on any platform. With RStudio you can interactively 
+explore text, code, and data like in this tutorial, using formats such as 
+R Markdown and R Notebooks. 
+
+Then, check out the Quickstart Guide and the Strategic Data Project R Glossary.
+
+# Part One: Getting To Know the Data
+
+When you double-clicked on this file to open it, RStudio should have opened 
+with four panes--the editor pane which is showing this tutorial, the main R
+pane, the files/viewer pane, and the environment pane. 
+
+For our purposes, the two most important sections are the command window and 
+the results window above it. For this part of the tutorial, you will enter R 
+commands interactively. You can run commands directly from this file by clicking 
+the green arrow on the top right above the code "chunks", or by highlighting the 
+command and clicking Run or Ctrl + Enter. 
+
+When the tutorial asks questions about the data, find the answers by looking at
+the output in the R results window, and then consult the "Answer Key" to see 
+if you are right.
+
+None of the commands in this part of the tutorial make changes to the data, so
+if you have to leave the tutorial and come back to it, you don't have do redo
+the earlier part. Just reload the data by clicking on the command
+below, and then go to the section where you left off.
+
+## First, load the data.
+
+```{r dataLoad, message=FALSE, warning=FALSE}
+library(dplyr) # loads a library of useful functions for data manipulation
+# If dplyr is not installed use
+# install.packages("dplyr")
+# Use read.csv to import CSV style data
+stu_data <- read.csv("data/Delawnymous_SSY_20170813.csv", 
+                     stringsAsFactors = FALSE)
+
+```
+
+This data file contains information about fictitious students in the state of
+Delawnymous. None of the students in the data actually exist, but the
+relationships in the data are based on those in a real student data file. This
+data has already been cleaned -- that is, the data is not the same as the raw
+source data from the Delawnymous longitudinal data system. Inconsistencies and
+obvious data errors have been fixed, and the variables and values have been
+renamed and labeled.
+
+If you haven't used R much before, it will probably be helpful for you to
+look at the actual data first, to see how it is stored in R. Type
+`View(stu_data)` in the command window, and then scroll left and right and up
+and down through the data to see the information stored as variables (columns)
+and records or observations (rows). Close the browser window when you are done.
+
+This file is a panel dataset, that means there is one row per student per school
+year. Thus the file has two key variables: student id, or `sid`, and
+`school_year`.
+
+The first step in exploring the data is confirming that the data does in fact
+have exactly one record per student per year. We use the `n_distinct` function
+from the `dplyr` package in R to quickly do this. (Note: the `dplyr::n_distinct()` 
+part is unnecessary, but is included here to show you that the function exists 
+in a package, or extension to R. You can simply type `n_distinct()` after loading 
+the package and R will know where to find the function.)
+
+```{r}
+dplyr::n_distinct(stu_data$sid)
+dplyr::n_distinct(stu_data$sid, stu_data$school_year)
+```
+
+## Next, let's look at a list of the variables in the dataset.
+
+```{r}
+str(stu_data)
+```
+
+**Question 1: According to the output of the `str()` command, how many records
+(aka observations, or rows) are there in the dataset?**
+
+[See answer key for results.]
+
+You can see that there are 23 variables in the dataset. The left-hand column
+gives variable names. The second column shows the type of variable. There 22
+numeric variables of different types: num (real numbers); int (integers); chr
+(character or string variables).
+
+In addition to student ID and school year, the dataset contains student
+demographic data, school information, grade level, attendance data, test scores,
+and high school graduation information.
+
+The `n_distinct()` command confirms the structure of the data, and the `View()`
+and `str()` commands give an overview of the dataset. Next, it's time to start
+looking at individual variables. As you look at each variable in a new dataset
+for the first time, these are some of the questions to consider:
+
+**What type of variable is it?**
+
+  - Is it text or numeric?
+  - Is it a continuous variable (able to take many numeric values), or is it a 
+categorical variable (limited to a smaller number of possible values representing 
+specific categories)? 
+  - If it is a categorical variable, is it stored as a text string, or is it 
+numeric? Does it have labels that explain the categories?
+  - Is it a date or time variable? Or, is it a long text description that can take 
+any number of values? 
+  - It is a binary variable (often referred to as a "dummy," indicator, or 
+logical variable) which takes only two values, such as 1 or 0, typically 
+interpreted as true/false or yes/no?
+  - What is the distribution of the variable?
+  - If it is a categorical variable, what share of observations fall in each category?
+  - If it is numeric, what are the maximum, minimum, average, standard deviation, 
+median, and 25th and 75th percentile values?
+  - Can you identify any problems with the variable? 
+  - Are there any missing values?
+  - Does it look like there are outliers (a few values that are unusually high or low)? 
+  - Are there any impossible values? 
+  - Are there variables which are formatted incorrectly—-for example, dates or 
+numbers stored as strings?
+	
+
+One of the most useful commands when you are in the "getting to know the data" 
+phase is the `summary()` command. This command answers many of the questions above 
+all at once. You can use it to find out information about just one variable. 
+In R, whenever we reference a dataset, we need to tell R which dataset we want - 
+in this case `stu_data`, and we use the `$` to tell R to look for the `school_year` 
+variable within the `stu_data` dataset. In RStudio, the editor will autocomplete 
+for you as you are typing, helping you search the columns within a dataset. 
+
+```{r}
+summary(stu_data$school_year)
+```
+
+Or you can look at several variables, or all the variables in the dataset. Here 
+we specify a vector of variable names `c("sat_math_score", "sat_verbal_score")` 
+(notice the quotation marks), and we tell R we want all rows 
+(nothing before the comma), but only the columns in the set of names that come 
+after the comma. 
+
+```{r}
+summary(stu_data[, c("sat_math_score", "sat_verbal_score", "sat_writing_score")])
+```
+
+**Question 2: What are the average and 25th percentile fo SAT math scores for the
+records in the data which have SAT scores?**
+
+Go ahead and look through the entire list of variables using the `summary()`
+command. After all the results have been displayed, you can scroll up and
+down through the results window to review the output. Review the output, keeping
+the questions above in mind.
+
+```{r}
+summary(stu_data)
+```
+
+By default, `summary()` is not very informative about data elements that are 
+character or factor values -- non-numeric data. The `table()` command gives 
+you two pieces of information: the different values of a categorical variable, 
+and the number of records which have each value.
+
+```{r}
+table(stu_data$s_male)
+table(stu_data$s_birth_year)
+table(stu_data$s_race)
+table(stu_data$s_frpl)
+```
+
+By default, R excludes missing values when it tabulates a variable. You can tell
+this because the total number of records shown is lower than the total number of
+records in the dataset. You can verify the total number of records in the
+dataset with the `nrow` command:
+
+```{r}
+nrow(stu_data)
+```
+
+To make R show the records with missing values, use the `table()` command with 
+the `useNA = "always"` option. R uses the period `<NA>` symbol to indicate missing 
+values.
+
+```{r}
+table(stu_data$s_frpl, useNA = "always")
+```
+
+It's good practice to always use the missing option when you're exploring data
+unless you specifically want to know the percentages of records in different
+categories excluding the missing records. Go ahead and look at the distributions
+of the rest of the categorical variables:
+
+(Note: You can optionally label the output of the table, so the output is easier 
+to read when you have multiple tables in the console, just declare a name and 
+set it equal to the data element you want to tabulate. Your name cannot have a 
+space in it though.)
+
+```{r}
+table(ell = stu_data$s_ell, useNA = "always")
+table(iep = stu_data$s_iep, useNA = "always")
+table(grade = stu_data$s_grade_level, useNA = "always")
+table(grad = stu_data$hs_diploma, useNA = "always")
+table(grad_year = stu_data$hs_diploma_year, useNA = "always")
+table(hi_grade = stu_data$sch_high_grade, useNA = "always")
+table(lo_grade = stu_data$sch_low_grade, useNA = "always")
+table(stu_data$sch_high, useNA = "always")
+table(stu_data$sch_charter, useNA = "always")
+table(stu_data$sch_alternative, useNA = "always")
+table(stu_data$sch_vocational, useNA = "always")
+```
+
+**Question 3: How many values are there for s_frpl?**
+
+**Question 4: What is the relationship between missing values for
+hs_diploma_year and the hs_diploma variable?**
+
+**Question 5: Can you identify some binary "dummy" or indicator variables?**
+
+When you get a new dataset, it's a good idea to run the codebook command to get
+an overview of the data. After that, you should inspect some of the most
+important variables one or a few at a time. This dataset has a relatively small
+number of variables, so we'll be able to look at all of them. For initial data
+inspection, the `table()` command is the most useful command for categorical 
+variables. The `summary()` and `hist()` commands are most useful for continuous 
+variables.
+
+**Question 6: What share of records are missing grade level?**
+
+**Question 7: Are there any other variables which have the same missingness pattern?**
+
+**Question 8: What share of students have an Individualized Education Plan?**
+
+`table()` can also be useful for comparing the joint distributions of two
+variables. The resulting tables are often referred to as crosstabs. Since you'll
+be doing this a lot in the hands-on exercise for the fall workshop, it's worth
+taking the time to make sure that you are comfortable with making and
+interpreting crosstabs.
+
+When you ask R to make a `table()` of two variables, R generates a table with
+the first variable's categories in the rows of the table, and the second
+variable's categories in the columns. The cells in the table give the total
+number of records which fall into each combined category. Again, you can label 
+each element of the table with an optional label if you want as well. 
+
+```{r}
+table(race = stu_data$s_race, charter = stu_data$sch_charter, useNA="always")
+```
+
+First look at the totals in the bottom row and right-most column. Confirm that
+they match the counts from the single-variable tabs for race and charter school
+status.
+
+```{r}
+table(stu_data$s_race, useNA="always")
+table(stu_data$sch_charter, useNA="always")
+```
+
+**Question 9: How many records in the dataset are for Black students attending 
+charter schools?**
+
+For two-way tabulations, R does not automatically provide percentages. This
+makes it harder to see if the racial and ethnic distribution for charter school
+students is different from the rest of the school population. In R
+`prop.table()` converts a `table()` to a proportion table. You specify the
+`margin` to tell R whether you want row, column, or cell proportions Set
+`margin = 1` for row, `margin = 2` for column proportions
+
+Note that `prop.table` is a function that must be combined with `table`. This 
+pattern of nesting functions is common in R. Later we'll see an intuitive way 
+to chain functions together so that the commands are easier to read. 
+
+
+```{r}
+prop.table(
+  table(stu_data$s_race, stu_data$sch_charter, useNA="always"), 
+           margin = 2)
+
+```
+
+
+Here we see for the school years in the dataset, of students not attending
+charters, 32 percent are Black; and of students attending charters, 41 percent
+are Black. Notice that R reports proportions, not percentages, by default - 
+multiply by 100 to get the percentages. 
+
+**Question 10: Are Hispanic student relatively more or less likely to attend 
+charter schools?**
+
+Now, look at the same data using row proportions.
+
+```{r}
+prop.table(
+  table(stu_data$s_race, stu_data$sch_charter, useNA="always"), 
+           margin = 1)
+```
+
+**Question 11: How would you interpret the percentages for Black students 
+compared to all students?**
+
+Now, look at the same data using cell proportions. This time, let's add the 
+`round()` command to make the output more readable. By specifying `digits = 4` 
+we are telling R where we want to round at. 
+
+```{r}
+round(
+  prop.table(
+    table(stu_data$s_race, stu_data$sch_charter, 
+                       useNA="always")
+    ), 
+  digits = 4)
+```
+
+
+**Question 12: Explain the figure 0.0271 in the second row.**
+
+One problem with these tabulations is that they pool data from six school years.
+This improves sample size but it means that the data is less current. 
+
+As with anything in R, there are multiple ways to handle this. Let's use this 
+as a good time to introduce the `%>%` command. This command allows you to "chain" 
+or "pipe" commands together, without nesting functions like above. This helps 
+make your intuitive to read. See if you can follow the chain below:
+
+
+```{r}
+
+stu_data %>% 
+  filter(school_year == 2016) %>% 
+  select(s_race, sch_charter) %>% 
+  table(useNA = "always") %>% prop.table(margin = 2)
+
+```
+
+We start with the `stu_data` dataset, we `filter()` to include only the rows for 
+the year 2016, we `select()` only the columns `s_race` and `sch_charter`, we 
+put these in a `table()`, and include missing values, and then we compute a 
+`prop.table()` using column proportions.
+
+Note that R uses a double equals sign to indicate equality, a single equals sign 
+is used to set variables or function arguments. 
+
+Next, let's look at high school graduates. First, verify that diploma year is
+missing for non-graduates.
+
+```{r}
+table(stu_data$hs_diploma_year, stu_data$hs_diploma, useNA = "always")
+```
+
+You can see that all the non-graduates had a high-school graduation year of
+`<NA>`, or missing. Crosstabbing two related variables to see if they are
+consistent with one another is a common data inspection chore. Next, let's use
+row and column filters to look at graduates across school years.
+
+To get a better idea of how the data is structured, first sort it by student ID
+and school year, and then browse just the records for students who graduated. 
+In R, you often want to manipulate your data object, and use the `<-` operator 
+to overwrite it -- here we overwrite `stu_data` with a sorted version of the 
+same data. 
+
+```{r}
+stu_data <- stu_data %>% arrange(sid, school_year)
+View(stu_data[stu_data$hs_diploma == 1, ])
+```
+
+You can browse just the variables of interest to make the data easier to inspect.
+Note here that we use the `[]` after `stu_data` to tell R what "index" or specific 
+elements of the `stu_data` we want to include. In this case, the first element 
+of the bracket tells R we want all rows where `stu_data$hs_diploma == 1`, then 
+after the comma, we tell R which columns, or variables, we want to include. 
+
+```{r}
+View(
+  stu_data[stu_data$hs_diploma == 1, 
+           c("sid", "school_year", "hs_diploma", "hs_diploma_year")]
+  )
+```
+
+
+It looks like the high school diploma year is the last school year for each
+graduate in the dataset. Armed with this understanding, let's count the number
+of graduates each year. A quick way to do this is to select only those rows 
+where the `hs_diploma_year` is identical to the `school_year` and then tabulate 
+the `school_year` to count how many graduates are in each year. 
+
+Because we are only working with a single variable, when we use the `[]` we do 
+not include a filter for rows and columns, but only one conditional statement. 
+This is because `stu_data$school_year` only has one dimension and we can only filter 
+it on that dimension. 
+
+```{r}
+table(
+  stu_data$school_year[stu_data$hs_diploma_year == stu_data$school_year], 
+      useNA = "always")
+```
+
+In general, when you are first exploring an education dataset that is in panel
+format, with an id variable (for example, students, schools, or teachers) and a
+time variable (usually school years), it's a good idea to inspect the data by
+crosstabbing important variables by time and place: school year and a geographic
+variable like school or district. This can help reveal patterns in the data and
+possibly surface problems with data coverage and consistency.
+
+Start by looking at school enrollment across years. Note that you should put 
+variables with large numbers of categories first in a `table()` command. For 
+tables where you will expect a lot of output, it can be helpful to save them 
+as another object in your workspace so you can work with them directly:
+
+```{r}
+table(stu_data$school_code, stu_data$school_year, useNA="always")
+```
+
+**Question 13: What happened to schools 166 and 219?**
+
+Look at school year and grade level.
+
+```{r}
+table(stu_data$s_grade_level, stu_data$school_year, useNA = "always")
+```
+
+This raises some questions: Did the number of students in Pre-K increase over
+time, or did recordkeeping improve? Is the large number of ninth graders due to
+a retention policy?
+
+Look at days absent and suspended. Since these variables are numeric with many 
+unique values, we can count the rows that pass some threshold. Note that you can 
+just include the logical test alongside the variable in the `table()` command 
+itself, and it will return `TRUE` or `FALSE` for observations that meet that 
+test (in this case students with any absences). 
+
+```{r}
+table(stu_data$s_days_absent > 0, stu_data$school_year, useNA = "always")
+```
+
+```{r}
+table(stu_data$s_days_suspended > 0, stu_data$school_year, useNA = "always")
+```
+
+Do you see any issues?
+
+Check other variables quickly, and see if everything is as you expect.
+
+```{r}
+prop.table(table(stu_data$school_year, stu_data$s_male, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$s_birth_year, stu_data$school_year, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$s_race, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$s_frpl, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$s_ell, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$s_iep, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$sch_charter, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$sch_alternative, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$school_year, stu_data$sch_vocational, useNA = "always"), 
+           margin = 1)
+
+```
+
+**Question 14: what happened to missingness over time?**
+
+**Question 15: did any variables change noticeably over time?**
+
+Finally, check the distribution of a few variables by school type or school code.
+
+```{r}
+prop.table(table(stu_data$s_iep, sch_alt = stu_data$sch_alternative, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$s_frpl, sch_charter = stu_data$sch_charter, useNA = "always"), 
+           margin = 1)
+prop.table(table(stu_data$s_frpl, sch_voc = stu_data$sch_vocational, useNA = "always"), 
+           margin = 1)
+# prop.table(table(stu_data$school_code, stu_data$s_frpl, useNA = "always"), 
+#            margin = 1)
+
+```
+
+
+Now that you have a good idea of how the categorical variables are distributed,
+let's look at the continuous variables. There are several in the dataset: math
+and ELA test scores, SAT math, verbal, and writing scores, and days absent and
+suspended. Except for the math and ELA scores, these aren't technically
+continuous variables, since they have a limited number of integer values, but
+they have enough values that it's easiest to explore them using commands for
+numerical variables.
+
+The summary command gives the minimum, first quartile, median, mean, third quartile, 
+maximum value, and count of missing values for numeric variables. Note that to 
+select multiple variables here we use the `matches()` function to match all 
+variables that have either "s_days", "std", or "sat" in their name - the `|` 
+operator tells R to match using OR. 
+
+```{r}
+stu_data %>% 
+  select(matches("s_days|std|sat")) %>% 
+  summary()
+```
+
+Note that since dummy variables are either 0 or 1, the average value is the same
+as the share for which the condition is true.
+
+```{r}
+prop.table(table(stu_data$s_iep))
+summary(stu_data$s_iep)
+```
+
+For other information about numeric variables including standard deviations and 
+variances, the 
+following commands are helpful:
+
+*Note that when missing values are present in the data, even a single missing 
+value, the result will be NA, unless you set the option `na.rm=TRUE` to tell R 
+to ignore missing values.*
+
+```{r}
+sd(stu_data$s_days_absent, na.rm = TRUE)
+var(stu_data$s_days_absent, na.rm=TRUE)
+```
+
+For test scores, histograms are usually the best way to review distributions.
+R has a number of ways to make graphics, but the most popular graphics system 
+for R is the `ggplot2` library. Here we will use the `qplot()` function to draw 
+a basic plot, and the `facet_wrap()` and `facet_grid()` functions to tell R to 
+repeat that plot over different categories in the data. This is a best practice 
+in data visualization called small multiples, and `ggplot2` makes it very easy 
+to do. You can use this  option to look at multiple groups using the same scale, 
+It's usually a good idea to examine scores separately by year and
+grade. You might need to expand the charts to full screen to inspect them.
+
+```{r}
+library(ggplot2)
+
+qplot(stu_data$std_scaled_m)
+qplot(data = stu_data, std_scaled_m) + facet_wrap(~school_year)
+qplot(data = stu_data, std_scaled_m) + facet_wrap(~s_grade_level)
+qplot(data = stu_data, std_scaled_m) + facet_grid(s_grade_level~school_year)
+```
+
+
+**Question 16: When did the state stop administering math tests to second graders?**
+
+R graphing commands have a plethora of options, and `qplot` is not an exception. 
+Tolearn the syntax and the options for any command, you can go to the help page 
+for that command by typing `?` in front of the function name like below:
+
+```{r eval=FALSE}
+?qplot
+```
+
+Review the overall distributions for the ELA scores. In this case we'll skip the 
+grade-by-year plot since the data has already been reviewed above.
+
+```{r}
+qplot(stu_data$std_scaled_e)
+qplot(data = stu_data, std_scaled_e) + facet_wrap(~school_year)
+qplot(data = stu_data, std_scaled_e) + facet_wrap(~s_grade_level)
+```
+
+Before looking at the histogram of SAT scores, check the coverage across years. 
+One way to do this is to use the `by()`  function with the `summary()` command.
+The first argument to `by()` is the variable we want to apply a function to, 
+the second argument is the group we want to split the variable by, and the third 
+argument is the function we want to apply - `FUN = summary`.
+
+```{r}
+# By year
+by(stu_data$sat_math_score, stu_data$school_year, FUN = summary)
+# By grade
+by(stu_data$sat_math_score, stu_data$s_grade_level, FUN = summary)
+```
+
+
+You can use the by prefix with many R functions. The fact that the number of
+observations decreases in the most recent years, and that there are values for
+many grade levels, makes it seem likely that the data is not structured so that
+SAT scores appear only in the testing year. Browse the data to verify this.
+
+```{r}
+stu_data %>% arrange(sid, school_year) %>% 
+  select(sid, school_year, s_grade_level, starts_with("sat")) %>% 
+  View()
+```
+
+
+It appears that for any students who took the SAT anywhere in 2011-2016, the
+score appears in all years the student is in the data. Examine the SAT score
+prevalence just for 12th graders across time. Note that you must apply the 
+grade-level restriction to both arguments to the `by()` function. 
+
+```{r}
+by(stu_data$sat_math_score[stu_data$s_grade_level == 12], 
+   stu_data$school_year[stu_data$s_grade_level == 12], summary)
+```
+
+**Question 17: What pattern do you see?**
+
+For completeness, check the distribution by year for 12th graders. Here we 
+introduce an alternative way to specify plots in R. It takes a little getting 
+used to, but it will enable you to quickly and easily make production quality 
+graphics with just a few commands. Here we specify the dataset we are using in 
+the `ggplot()` command, and we use `aes()` to specify which variables in that 
+dataset we want to use and where on the plot to assign them, in this case to 
+the X-axis. We then add a histogram to this function using `geom_histogram()`. 
+Use the `binwidth` option to make the bars line up with actual SAT scores. 
+Finally, as before, we "facet" the graph by school year using `facet_wrap()`.
+
+```{r}
+
+ggplot(stu_data, aes(x = sat_math_score)) + geom_histogram(binwidth = 10) + 
+  facet_wrap(~school_year)
+
+ggplot(stu_data, aes(sat_verbal_score)) + geom_histogram(binwidth = 10) + 
+  facet_wrap(~school_year)
+ggplot(stu_data, aes(sat_writing_score)) + geom_histogram(binwidth = 10) + 
+  facet_wrap(~school_year)
+
+```
+
+If you want to compare the distributions of two continuous variables, you can
+make a scatter plot, or use the correlation command.
+
+```{r}
+qplot(x = std_scaled_m, y = std_scaled_e, data = stu_data)
+```
+
+By default if `NA` values are present, the correlation will be `NA` as well, 
+we have to tell R which observations to use -- in most cases you will select 
+"pairwise.complete.obs", which matches the default of most other software 
+packages like Stata or SPSS.
+
+```{r}
+cor(stu_data$std_scaled_m, stu_data$std_scaled_e, 
+    use = "pairwise.complete.obs")
+```
+
+Correlation measures the strength of the linear relationship between two
+variables, and it varies from -1 to 1. Two variables with zero correlation have
+no relationship, while variables that are identical have a correlation of 1.
+Variables that are negatively correlated (as one tends to increase, the other
+tends to decrease) have a correlation less than zero.
+
+```{r}
+cor(stu_data$std_scaled_m, stu_data$std_scaled_m, use = "pairwise.complete.obs")
+cor(stu_data$s_days_absent, stu_data$std_scaled_e, use = "pairwise.complete.obs")
+```
+
+You can also make a correlation table of multiple variables, including dummy
+variables. Check to see that the signs and strengths of the correlations are
+what you expect.
+
+```{r}
+stu_data %>% select(starts_with("std"), starts_with("sat"), 
+                    s_ell, s_iep, hs_diploma) %>% 
+  cor(use = "pairwise")
+```
+
+For comparing the distributions of categorical and continuous variables, there
+are several options. One of the most compact is to use the table command.
+Without options, the table command works much like the tab command.
+
+```{r}
+table(stu_data$school_year, sch_vocation = stu_data$sch_vocational)
+```
+
+```{r}
+stu_data %>% group_by(s_frpl) %>% filter(s_grade_level == 8) %>% 
+  summarize(mean_math = mean(std_scaled_m, na.rm=TRUE), 
+            mean_eng = mean(std_scaled_e, na.rm=TRUE))
+
+```
+
+**Question 18: what is the average math score for students receiving free in
+lunch in 8th grade?**
+
+Note that these test scores have been standardized to have an average of 0 and a
+standard deviation of 1.
+
+You can also examine categorical and continuous variables together using box
+plots. To do this, we add an `x` and a `y` argument to the `aes()` function. 
+For variables coded 0 and 1, it is necessary to tell R that you want these 
+treated as categories, or "factors" in R lingo, which the `factor()` function 
+does. 
+
+
+```{r}
+ggplot(stu_data[stu_data$s_grade_level == 8, ], 
+       aes(y = std_scaled_e, x = factor(s_ell))) + geom_boxplot()
+```
+
+
+Here you can see that English language learners have a lower median 8th grade
+ELA score than other students.
+
+Box plots are rarely seen in the popular press, but they are beloved of
+statisticians because they summarize a great deal of information in a single
+graph. The gray box shows the interquartile range, from the 25th to the 75th
+percentile, with the line in the middle showing the median value in the data.
+The shorter horizontal line "whiskers" are each located at a distance from the
+box that is 1.5 times the interquartile range. The points above and below the
+whiskers are potential outliers.
+
+Before finishing this part of the tutorial and moving on to asking questions
+using the data, there are two more syntactical issues in R you should be aware
+of. First, it's possible to make complicated sample restrictions using the if
+statement with AND `&` and OR `|` logical operators. The vertical pipe symbol
+(|) that R uses for OR is located above the backslash on the keyboard. You
+can use parentheses to make the precedence of the operators clear if necessary.
+
+While `table()` is useful for looking at a quick comparison, when you want to 
+apply complex filters or summarize over a variable with many categories, in R 
+it is useful to group the data and summarize. Using the `%>%` we've already seen 
+above, this is very simple. 
+
+```{r}
+stu_data %>% group_by(s_male) %>% 
+  filter(s_grade_level == 7 & (school_year == 2015 | school_year == 2016)) %>% 
+  summarize(median_absences = median(s_days_absent, na.rm=TRUE))
+
+```
+
+You can also use `!=` as  a comparison operator that means "not equals." 
+
+```{r}
+stu_data %>% group_by(s_male, s_grade_level) %>% 
+  filter(school_year != 2011 & school_year != 2012) %>% 
+  summarize(median_absences = median(s_days_absent))
+
+```
+
+
+**Question 19: Explain what this table shows.**
+
+The second thing to note is a quirk of the numeric missing symbol. In comparison
+expressions, R treats missing as matching any possible value. This means you
+sometimes need to explicitly exclude missing values when you use comparison
+operators. Suppose you want to know the number of students with greater than or
+equal to 9 absences in 2016.
+
+```{r}
+nrow(stu_data[stu_data$s_days_absent >= 9 & stu_data$school_year == 2016,])
+nrow(stu_data[stu_data$s_days_absent >= 9 & !is.na(stu_data$s_days_absent) & 
+                stu_data$school_year == 2016,])
+
+
+```
+
+
+Because R treats `NA` as any possible number, the first command counts students 
+with missing absence totals, and the second command does not.
+
+# PART 2: USING THE DATA TO ASK QUESTIONS
+
+Now that you've finished the "getting to know the data" phase, you can start to
+ask interesting questions! For this part of the tutorial, you'll enter most
+commands directly into the R window. 
+
+In this part you won't be trying to check on characteristics of variables in the
+dataset; you want to ask questions about specific groups of students. Here are
+some steps to think through when you are writing exploratory Stata commands to
+do descriptive analysis:
+
+What is the specific research question that I am interested in? This determines
+the choice of variables. You can use your knowledge from the data inspection
+phase to map research questions to variables.
+
+How should I restrict my data to be sure that I'm using the right observations?
+This determines the filters you apply to your data in R.
+
+How should I show the results? This determines the Stata command and options you
+choose. Sometimes it can take some experimenting to get your output to look
+exactly the way you want it to.
+
+We'll start by asking questions about achievement gaps in math for different
+student subgroups. Then, we'll inquire into high school graduation outcomes by
+subgroup. These questions can be answered using the table and tab commands.
+Finally, we'll try to determine which factors are associated with graduating
+on-time in four years, using linear and logistic regression commands.
+
+A note about regression: if you have taken at least a one-semester class in
+statistics and econometrics, you are probably already familiar with some of the
+theory behind linear and logistic regression. Regression analysis is important
+in education research for describing data, developing predictive models, and
+evaluating the impact of programs. If you haven't learned these methods in an
+academic setting, though, you may not feel comfortable applying them in your own
+work, and teaching you everything you need to know about regression is outside
+the scope of this tutorial. However, this tutorial does end with a demonstration
+of regression commands to provide some exposure to how they work and how to
+interpret regression output.
+
+In case you're just coming back to the tutorial, you can start by reloading the
+data.
+
+```{r}
+# Clear workspace
+rm(list = ls())
+library(dplyr) # loads a library of useful functions for data manipulation
+# If dplyr is not installed use
+# install.packages("dplyr")
+# Use read.csv to import CSV style data
+stu_data <- read.csv("data/Delawnymous_SSY_20170813.csv", 
+                     stringsAsFactors = FALSE)
+```
+
+Let's begin by restricting the sample to our student group of interest. 
+Think carefully about which years of data you should use to explore high school 
+graduation. By eleventh or twelfth grade, many students who won't go on to graduate 
+will have leftschool already. Typically graduation rates are calculated for 
+cohorts of ninth-graders. The latest year in the data is 2016, and graduates 
+in that year would have been ninth-graders in 2013. Graduates in 2015 would 
+have been ninth graders in 2012. We can calculate four-year graduation rates for
+students in 2013, and five-year graduation rates for students in 2012. However, 
+we are missing absence data for 2012. Let's use ninth graders in 2013 to examine 
+both achievement disparities by race and disparities in graduation rates. 
+(For this exercise, we will ignore students who transfer in or out of the state 
+after ninth grade.)
+
+```{r}
+stu_data_g9 <- stu_data[stu_data$s_grade_level == 9 & 
+                          stu_data$school_year == 2013,]
+summary(stu_data_g9$std_scaled_m, na.rm=TRUE)
+```
+
+Note that the average score is very close to zero, and the standard 
+deviation is very close to 1. This is a typical way of standardizing assessment 
+scores to aide in statistical modeling and interpretation.
+
+Next, let's begin by looking descriptively at achievement disparities. A good 
+practice is to look at means and variances of achievement scores by key demographic 
+indicators to get a sense of scale and proportion for disparities and inform 
+furthe ranalysis. First, how different are math scores by gender? You can use 
+the `by()` function to answer this.
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$s_male, mean, na.rm=TRUE)
+# Alternatively
+by(stu_data_g9$std_scaled_m, stu_data_g9$s_male, summary)
+```
+
+Next, how do math scores vary for these students by race/ethnicity? 
+R hint: In the command window, you can save typing by using the page up key 
+to bring up previous commands and edit them.
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$s_race, summary)
+```
+
+*How do math scores vary by free lunch status?*
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$s_frpl, summary)
+```
+
+Another good step is to also investigate how key student characteristics vary by 
+each other, as we saw in Part One: How does free lunch status vary by race for 
+these students? Use the tab command.
+
+*How does free lunch status vary by race for these students? Use the tab command.*
+
+```{r}
+round(prop.table(table(stu_data_g9$s_frpl, stu_data_g9$s_race), margin = 1), 3)
+```
+
+*How do ninth grade math scores vary by English Language Learner status?*
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$s_ell, summary)
+```
+
+*How do ninth grade math scores vary by special education status?*
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$s_iep, summary)
+```
+
+We should also look at disparities by school-level factors. Use the table 
+command to look at math scores by school type:
+
+*What are average ninth grade math scores for charter school students?*
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$sch_charter, summary)
+```
+
+*Vocational students?*
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$sch_vocational, summary)
+```
+
+*Alternative school students?*
+
+```{r}
+by(stu_data_g9$std_scaled_m, stu_data_g9$sch_alternative, summary)
+```
+
+How do ninth grade math scores vary by attendance? Let's make a scatterplot. 
+
+```{r}
+library(ggplot2)
+ggplot(stu_data_g9, aes(x = s_days_absent, y = std_scaled_m)) + geom_point()
+
+```
+
+*As is typical with student-level education data, there are so many data points
+that they cover each other up, but it does look as if test scores tend to be
+lower for students with more absences, as expected. You can add a fitted line to
+see the relationship more clearly.*
+
+```{r}
+ggplot(stu_data_g9, aes(x = s_days_absent, y = std_scaled_m)) + geom_point() + 
+  geom_smooth()
+```
+
+Adding a fitted line is as easy as adding another "layer" to the plot using the 
+`geom_smooth()` command. By default, this function will fit a loess smoother, 
+but if you want to see a trend line, you can use `geom_smooth(method = 'lm')` 
+and fit a linear model instead. 
+
+Next, let's turn our attention to high school graduation as an outcome. We have 
+seen the magnitude of disparities that exist by student and school factors in 
+math scores, so it is logical to look at the relationship between math scores 
+and high school graduation.
+
+*What is the average ninth grade math score for graduates and non-graduates? Use
+the by function*
+
+```{r}
+# Look at table using by command
+by(stu_data$std_scaled_m, stu_data$hs_diploma, mean, na.rm=TRUE)
+```
+
+The disparity in math scores between graduates and non-graduates suggests the 
+two variables are strongly related. At this point, you should look at the 
+relationship between graduation and student and school characteristics following 
+the same process as we did above for math scores.
+
+Another way to approach this is to construct a correlation table to look at 
+these relationship simultaneously. A correlation table is another way to quantify 
+the strength of the linear relationship between high school graduation 
+and other numeric variables (including dummy variables). The correlation table will 
+show the the correlations for every pair of variables you give it, which allows you 
+to compare correlations with your outcome, but also among key factors such as 
+race/ethnicity and days suspended or absent.
+
+You should exclude `s_frpl` and `s_race`, since these are categorical variables
+with more than two categories. (Note that it's possible to redefine these
+variables as a series of dummy variables--for example, to define a separate 0/1
+variable for each race/ethnicity category--but we haven't done that.) You should
+also exclude SAT scores, since there are large numbers of missing values in
+2013, and because the SAT is usually taken in 11th or 12th grades. The `cor`
+command will drop observations with any missing values.
+
+
+```{r}
+stu_data_g9 %>% 
+  select(hs_diploma, s_male, s_ell, s_iep, starts_with("s_days_"), 
+         starts_with("std_scaled_"), 
+         starts_with("sch_"), 
+         s_birth_year) %>% 
+  cor(use = "pairwise") %>% round(digits = 2)
+```
+
+Looking just at the first `hs_diploma` column, you can see that high school 
+graduation is most strongly correlated (or negatively correlated) with ninth 
+grade absences, not being an older student, test scores, suspensions, and 
+attending a vocational school. Based on the crosstabs, we know that 
+free lunch status and race/ethnicity are also strongly related to graduation outcomes.
+
+However, many of these variables are correlated with one another--they vary
+together. Given that students with higher absences also tend to have lower test
+scores, what is the difference in the probability of graduation associated with
+having higher test scores for students with the same number of absences? What is
+the difference in the probability of graduation associated with more days of
+absence for students who have the same test scores? We can use regression
+commands to tease out and quantify these differences.
+
+With our data, we can't develop a model that shows that higher absences or 
+lower test scores in ninth grade cause non-graduation, because higher absences 
+and lower test scores could be related to another unobserved factor that is 
+actually causing students to drop out. But, we can use a regression model to 
+better understand the associations in the data and estimate the probability of 
+dropping out.
+
+To get a feel for how regression works, let's look at a simple example with 
+`hs_diploma` as the outcome (dependent) variable, and `s_male` as a single 
+predictor (independent) variable. Here is the R syntax for a linear regression:
+
+```{r}
+simple_model <- lm(hs_diploma ~ s_male, data = stu_data_g9)
+summary(simple_model)
+```
+
+*Look particularly at three numbers in the regression output.*
+
+The coefficient (the number under Estimate next to `s_male`) estimates the linear
+relationship between being male (the independent variable) and graduating from
+high school (the dependent variable).
+
+The `t-value` (under Pr>|t|) (roughly the same as a p-value) is a measure of the
+statistical significance of the relationship. It gives the probability of seeing
+the coefficient by chance if there were actually no relationship between
+`s_male` and `hs_diploma`. The R-squared value gives the share of the variation
+in `hs_diploma` that is explained by the independent variables (in this case,
+just `s_male`) in the regression.
+
+The coefficient is actually the slope of a fitted line for a graph with the
+independent variable on the x axis and the dependent variable on the y axis.
+(The (Intercept) value is the intercept of the line.) Remembering that the slope of a
+line is rise over run, you can interpret the coefficient of a univariate linear
+regression in this way: "Every one-unit change in the independent variable is
+associated with an estimated change in the dependent variable equal to the
+coefficient."
+
+This makes more sense when the y variable is a continuous variable rather than a
+dummy variable, but it is still a valid interpretation for this model. Since
+`s_male` is a dummy variable, a one unit increase from 0 to 1 is the same as the
+difference between being not male and male. `hs_diploma` can only take on the
+values of 0 or 1, but we can interpret the coefficient as an estimated change in
+the probability of graduation. Thus another way to state the interpretation is
+that being male is associated with a 5.1 percent decrease in the probability of
+graduation. In fact, if you look at the results of the crosstab above, you will
+see that this is exactly the difference in graduation rates for male and female
+students in our sample.
+
+Because the p-value is very small (less than or equal to 0.000), the
+relationship between gender and high school graduation is highly statistically
+significant.
+
+On the other hand, according to the R-squared value, gender alone explains only
+three-tenths of a percent of the total variation in high school graduation.
+Clearly other factors are also at work.
+
+*Compare this with the output from a tab command:*
+
+```{r}
+prop.table(table(male = stu_data_g9$s_male, 
+                 diploma =stu_data_g9$hs_diploma), margin = 2)
+```
+
+To better understand what factors influence graduation, let's look at a 
+multivariate regression which includes multiple student characteristics that
+we think are strongly related to related to high school graduation, based on our 
+data exploration and our knowledge of education. Note the use of the 
+`factor()` function for `s_frpl` and `s_race`. It instructs R to convert those 
+categorical variables into a series of dummy variables for use in the regression.
+
+```{r}
+multi_model <- lm(hs_diploma ~ s_days_absent + s_days_suspended + 
+                    factor(s_frpl) + factor(s_iep) + factor(s_race) + 
+                    std_scaled_m + std_scaled_e + s_birth_year + 
+                    s_male + sch_vocational, data = stu_data_g9)
+summary(multi_model)
+```
+
+
+You can see a number of interesting things about this regression. For example, 
+with the other control variables included, race is not a significant predictor 
+of graduation in our data. The p-values are larger than .05, a typical threshold 
+for statistical significance.
+
+All of the other variables are statistically significant, except for being
+eligible for reduced price lunch.
+
+R automatically omitted dummy variables for Asian and for no FRL. These 
+are the base cases that the other dummy variables in those categories measure 
+change against. So, for example, being eligible for free lunch is associated with
+an estimated 6.1 percent decrease in the probability of graduation compared with 
+not being ligible for a free lunch. 
+
+Because this is a multivariate model, you need to assume that all other
+variables are held constant when you are interpreting the coefficient. For
+example, a one-standard-deviation increase in ninth grade math score is
+associated with an estimated 3.6 percent increase in graduation probability,
+holding all other variables constant.
+
+After you have run a regression, you can have R calculate the fitted results
+for each data point and store them in a new variable using the `<-` operator. 
+Let's call this `yhat`. 
+
+```{r}
+# Assign fitted values to the original data
+stu_data_g9$yhat <- predict(multi_model, newdata = stu_data_g9)
+```
+
+You can look at the distribution of the fitted probabilities from the regression
+model and compare them to actual graduation outcomes.
+
+```{r}
+ggplot(stu_data_g9, aes(x = yhat)) + geom_histogram() + facet_wrap(~hs_diploma)
+```
+
+If we use a .5 cutoff for the fitted probabilities to predict graduation, it
+looks as if the linear model did a good job of predicting graduates, but also
+had a number of "false positives" among non-graduates.
+
+Because linear models can predict probabilities greater than one or less than
+zero, when the dependent variable is a dummy variable, as in this case, analysts
+often prefer to use a generalized linear model which constrains the fitted
+values to fit a specific distribution. Logistic regression is the most common
+example, which restricts the fitted values to being between 0 and 1, and is
+suitable for analyzing outcome data where there are only two possible outcomes.
+Here is a generalized linear model (GLM) "logistic" regression using the logit
+command. Note it is very similar to the `lm()` command above, with an additional 
+argument `family = "binomial"` to tell it to fit a binomial model. 
+
+```{r}
+multi_logit <- glm(hs_diploma ~ s_days_absent + s_days_suspended + 
+                    factor(s_frpl) + factor(s_iep) + factor(s_race) + 
+                    std_scaled_m + std_scaled_e + s_birth_year + 
+                    s_male + sch_vocational, data = stu_data_g9, 
+                   family = binomial)
+summary(multi_logit)
+
+```
+
+Unlike a linear model, the coefficients in the output for a logistic regression
+can't be interpreted in a straightforward way. However, you
+can review the statistical significance of each variable. 
+
+You can also use the predict command to generate fitted values and make 
+predictions.
+
+```{r}
+stu_data_g9$yhat_logit <- predict(multi_logit, newdata = stu_data_g9, 
+                                  type = "response")
+ggplot(stu_data_g9, aes(x = yhat_logit)) + geom_histogram() + 
+  facet_wrap(~hs_diploma)
+```
+
+
+Congratulations! You've gone from exploring a new data set to performing 
+multivariate regression in only a few short steps. The commands and the analysis 
+steps you learned here will be helpful to prepare you for diving deeper into using 
+regression for inference and prediction in your future work.
+
